@@ -8,15 +8,24 @@ class VideoFeedConsumer(AsyncWebsocketConsumer):
         """
         print("WebSocket connection initiated...")
         await self.accept()  # Accept the WebSocket connection
-        await self.channel_layer.group_add("video_feed_group", self.channel_name)  # Add to group
-        print("WebSocket connection established and added to group.")
+
+        # Check if the client is already in the group
+        if not hasattr(self, "added_to_group"):
+            await self.channel_layer.group_add("video_feed_group", self.channel_name)  # Add to group
+            self.added_to_group = True  # Mark the client as added to the group
+            print("WebSocket connection established and added to group.")
+        else:
+            print("WebSocket connection already established.")
 
     async def disconnect(self, close_code):
         """
         Called when the WebSocket closes for any reason.
         """
         print(f"WebSocket disconnected with close code: {close_code}")
-        await self.channel_layer.group_discard("video_feed_group", self.channel_name)  # Remove from group
+        if hasattr(self, "added_to_group"):
+            await self.channel_layer.group_discard("video_feed_group", self.channel_name)  # Remove from group
+            del self.added_to_group  # Remove the marker
+            print("WebSocket removed from group.")
 
     async def receive(self, text_data):
         """
@@ -27,7 +36,7 @@ class VideoFeedConsumer(AsyncWebsocketConsumer):
             "video_feed_group",
             {
                 "type": "send_detection_message",  # This should match the method name
-                "text": text_data,
+                "message": text_data,  # Fixed: Changed "text" to "message"
             },
         )
 
