@@ -50,7 +50,7 @@ def generate_frames():
         if unique_detections:
             print("Detected Objects:", ", ".join(unique_detections))
 
-            if "copy" in unique_detections:
+            if "mobile" in unique_detections:
                 print("Condition met: 'copy' detected.")
 
                 # Send a message to the frontend via WebSocket **only once**
